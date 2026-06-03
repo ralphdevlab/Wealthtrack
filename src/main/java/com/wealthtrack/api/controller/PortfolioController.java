@@ -1,9 +1,11 @@
 package com.wealthtrack.api.controller;
 
+import com.wealthtrack.api.dto.HoldingPerformance;
 import com.wealthtrack.api.model.Portfolio;
 import com.wealthtrack.api.model.User;
 import com.wealthtrack.api.repository.PortfolioRepository;
 import com.wealthtrack.api.repository.UserRepository;
+import com.wealthtrack.api.service.PortfolioService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +20,8 @@ public class PortfolioController {
 
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
+    private final PortfolioService portfolioService;
 
-    // Request body for creating a portfolio
     @Data
     static class CreatePortfolioRequest {
         private String name;
@@ -44,5 +46,10 @@ public class PortfolioController {
     @GetMapping("/user/{userId}")
     public List<Portfolio> getByUser(@PathVariable Long userId) {
         return portfolioRepository.findByUserId(userId);
+    }
+
+    @GetMapping("/{portfolioId}/performance")
+    public List<HoldingPerformance> getPerformance(@PathVariable Long portfolioId) {
+        return portfolioService.getPerformance(portfolioId);
     }
 }
