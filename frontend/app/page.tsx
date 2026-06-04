@@ -218,25 +218,74 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-
-              {/* AI Insights */}
-            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-3">
-              <div className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
-                AI Insights
-                <span className="text-xs bg-[#E6F1FB] text-[#185FA5] px-2 py-0.5 rounded-full font-normal">
-                  ✨ Powered by AI
-                </span>
-              </div>
-              {insightLoading ? (
-                <div className="text-sm text-gray-400">Analyzing your portfolio...</div>
-              ) : (
-                <div className="bg-[#E6F1FB] border border-[#B5D4F4] rounded-lg p-4">
-                  <div className="text-sm text-[#185FA5] leading-relaxed whitespace-pre-line">
-                    {insight}
-                  </div>
-                </div>
-              )}
             </div>
+
+              {/* AI Insights + Performers row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
+
+              {/* AI Insights - takes 2 columns */}
+              <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
+                <div className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  AI Insights
+                  <span className="text-xs bg-[#E6F1FB] text-[#185FA5] px-2 py-0.5 rounded-full font-normal">
+                    ✨ Powered by AI
+                  </span>
+                </div>
+                {insightLoading ? (
+                  <div className="text-sm text-gray-400">Analyzing your portfolio...</div>
+                ) : (
+                  <div className="bg-[#E6F1FB] border border-[#B5D4F4] rounded-lg p-4">
+                    <div className="text-sm text-[#185FA5] leading-relaxed whitespace-pre-line">
+                      {insight}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Best & Worst Performer */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <div className="text-sm font-medium text-gray-900 mb-3">Performance</div>
+                {holdings.length === 0 ? (
+                  <div className="text-sm text-gray-400">No data yet.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Best performer */}
+                    {(() => {
+                      const best = [...holdings].sort((a, b) => b.gainLossPercent - a.gainLossPercent)[0];
+                      return (
+                        <div className="bg-[#EAF3DE] border border-[#C0DD97] rounded-lg p-3">
+                          <div className="text-xs text-[#27500A] uppercase tracking-wide mb-1">Top performer</div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-900">{best.ticker}</span>
+                            <span className="text-sm font-semibold text-[#3B6D11]">
+                              +{best.gainLossPercent.toFixed(2)}%
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Worst performer */}
+                    {(() => {
+                      const worst = [...holdings].sort((a, b) => a.gainLossPercent - b.gainLossPercent)[0];
+                      const isLoss = worst.gainLossPercent < 0;
+                      return (
+                        <div className={`rounded-lg p-3 border ${isLoss ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"}`}>
+                          <div className={`text-xs uppercase tracking-wide mb-1 ${isLoss ? "text-red-700" : "text-gray-500"}`}>
+                            {isLoss ? "Biggest loss" : "Lowest gain"}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-900">{worst.ticker}</span>
+                            <span className={`text-sm font-semibold ${isLoss ? "text-red-600" : "text-gray-600"}`}>
+                              {worst.gainLossPercent >= 0 ? "+" : ""}{worst.gainLossPercent.toFixed(2)}%
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}
