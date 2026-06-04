@@ -19,6 +19,8 @@ export default function Dashboard() {
   const [holdings, setHoldings] = useState<HoldingPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [insight, setInsight] = useState("");
+  const [insightLoading, setInsightLoading] = useState(true);
 
   // Form fields
   const [ticker, setTicker] = useState("");
@@ -36,6 +38,16 @@ export default function Dashboard() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    // Fetch AI insights
+    setInsightLoading(true);
+    fetch("http://localhost:8080/api/portfolios/1/insights")
+      .then((res) => res.json())
+      .then((data) => {
+        setInsight(data.insight);
+        setInsightLoading(false);
+      })
+      .catch(() => setInsightLoading(false));
   };
 
   useEffect(() => {
@@ -206,6 +218,25 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
+
+              {/* AI Insights */}
+            <div className="bg-white border border-gray-200 rounded-xl p-5 mt-3">
+              <div className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                AI Insights
+                <span className="text-xs bg-[#E6F1FB] text-[#185FA5] px-2 py-0.5 rounded-full font-normal">
+                  ✨ Powered by AI
+                </span>
+              </div>
+              {insightLoading ? (
+                <div className="text-sm text-gray-400">Analyzing your portfolio...</div>
+              ) : (
+                <div className="bg-[#E6F1FB] border border-[#B5D4F4] rounded-lg p-4">
+                  <div className="text-sm text-[#185FA5] leading-relaxed whitespace-pre-line">
+                    {insight}
+                  </div>
+                </div>
+              )}
+            </div>
             </div>
           </>
         )}

@@ -5,6 +5,7 @@ import com.wealthtrack.api.model.Portfolio;
 import com.wealthtrack.api.model.User;
 import com.wealthtrack.api.repository.PortfolioRepository;
 import com.wealthtrack.api.repository.UserRepository;
+import com.wealthtrack.api.service.AiInsightService;
 import com.wealthtrack.api.service.PortfolioService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/portfolios")
@@ -21,6 +23,7 @@ public class PortfolioController {
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
     private final PortfolioService portfolioService;
+    private final AiInsightService aiInsightService;
 
     @Data
     static class CreatePortfolioRequest {
@@ -52,4 +55,12 @@ public class PortfolioController {
     public List<HoldingPerformance> getPerformance(@PathVariable Long portfolioId) {
         return portfolioService.getPerformance(portfolioId);
     }
+    
+    @GetMapping("/{portfolioId}/insights")
+    public Map<String, String> getInsights(@PathVariable Long portfolioId) {
+        List<HoldingPerformance> performance = portfolioService.getPerformance(portfolioId);
+        String insight = aiInsightService.generateInsight(performance);
+        return Map.of("insight", insight);
+    }
+    
 }
