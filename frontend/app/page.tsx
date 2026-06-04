@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 type HoldingPerformance = {
   ticker: string;
@@ -140,26 +141,71 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <div className="text-sm font-medium text-gray-900 mb-4">Holdings</div>
-              {holdings.length === 0 ? (
-                <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
-              ) : (
-                holdings.map((h) => (
-                  <div key={h.ticker} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{h.ticker}</div>
-                      <div className="text-xs text-gray-500">{h.companyName}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900">${fmt(h.marketValue)}</div>
-                      <div className={`text-xs ${h.gainLoss >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
-                        {h.gainLossPercent >= 0 ? "+" : ""}{h.gainLossPercent.toFixed(2)}%
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              {/* Holdings list */}
+              <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
+                <div className="text-sm font-medium text-gray-900 mb-4">Holdings</div>
+                {holdings.length === 0 ? (
+                  <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
+                ) : (
+                  holdings.map((h) => (
+                    <div key={h.ticker} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{h.ticker}</div>
+                        <div className="text-xs text-gray-500">{h.companyName}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-900">${fmt(h.marketValue)}</div>
+                        <div className={`text-xs ${h.gainLoss >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
+                          {h.gainLossPercent >= 0 ? "+" : ""}{h.gainLossPercent.toFixed(2)}%
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
+
+              {/* Allocation pie chart */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <div className="text-sm font-medium text-gray-900 mb-4">Allocation</div>
+                {holdings.length === 0 ? (
+                  <div className="text-sm text-gray-400 py-4">Add holdings to see allocation.</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={holdings.map((h) => ({ name: h.ticker, value: h.marketValue }))}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={70}
+                        innerRadius={40}
+                      >
+                        {holdings.map((_, i) => (
+                          <Cell key={i} fill={["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => `$${fmt(value)}`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+                {/* Legend */}
+                <div className="mt-2 space-y-1">
+                  {holdings.map((h, i) => (
+                    <div key={h.ticker} className="flex items-center gap-2 text-xs">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full inline-block"
+                        style={{ background: ["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6] }}
+                      ></span>
+                      <span className="text-gray-600">{h.ticker}</span>
+                      <span className="text-gray-400 ml-auto">
+                        {totalValue > 0 ? ((h.marketValue / totalValue) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}
