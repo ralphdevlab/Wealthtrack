@@ -37,6 +37,7 @@ public class PortfolioService {
             }
 
             HoldingPerformance perf = new HoldingPerformance();
+            perf.setId(holding.getId());
             perf.setTicker(holding.getTicker());
             perf.setCompanyName(holding.getCompanyName());
             perf.setShares(holding.getShares());

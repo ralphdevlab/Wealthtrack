@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 type HoldingPerformance = {
+  id: number;
   ticker: string;
   companyName: string;
   shares: number;
@@ -21,6 +22,8 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [insight, setInsight] = useState("");
   const [insightLoading, setInsightLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<HoldingPerformance | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Form fields
   const [ticker, setTicker] = useState("");
@@ -96,6 +99,21 @@ export default function Dashboard() {
     setSubmitting(false);
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await fetch(`http://localhost:8080/api/holdings/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      setDeleteTarget(null);
+      loadHoldings();
+    } catch {
+      // silently fail for now
+    }
+    setDeleting(false);
+  };
+
   const totalValue = holdings.reduce((sum, h) => sum + h.marketValue, 0);
   const totalCost = holdings.reduce((sum, h) => sum + h.totalCost, 0);
   const totalGain = totalValue - totalCost;
@@ -161,16 +179,25 @@ export default function Dashboard() {
                   <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
                 ) : (
                   holdings.map((h) => (
-                    <div key={h.ticker} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div key={h.ticker} className="group flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{h.ticker}</div>
                         <div className="text-xs text-gray-500">{h.companyName}</div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-gray-900">${fmt(h.marketValue)}</div>
-                        <div className={`text-xs ${h.gainLoss >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
-                          {h.gainLossPercent >= 0 ? "+" : ""}{h.gainLossPercent.toFixed(2)}%
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-gray-900">${fmt(h.marketValue)}</div>
+                          <div className={`text-xs ${h.gainLoss >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
+                            {h.gainLossPercent >= 0 ? "+" : ""}{h.gainLossPercent.toFixed(2)}%
+                          </div>
                         </div>
+                        <button
+                          onClick={() => setDeleteTarget(h)}
+                          className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 text-lg"
+                          title="Delete holding"
+                        >
+                          🗑
+                        </button>
                       </div>
                     </div>
                   ))
@@ -350,6 +377,33 @@ export default function Dashboard() {
                 className="w-full bg-[#639922] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#557f1d] transition-colors disabled:opacity-50"
               >
                 {submitting ? "Adding..." : "Add holding"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation popup */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Delete holding?</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              Are you sure you want to delete <span className="font-medium text-gray-900">{deleteTarget.ticker}</span> ({deleteTarget.companyName})? This can't be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                No, keep it
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Yes, delete"}
               </button>
             </div>
           </div>

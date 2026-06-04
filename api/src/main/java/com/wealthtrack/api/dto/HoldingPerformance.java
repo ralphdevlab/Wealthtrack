@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 
 @Data
 public class HoldingPerformance {
+    private long id;
     private String ticker;
     private String companyName;
     private BigDecimal shares;

@@ -51,4 +51,13 @@ public class HoldingController {
     public List<Holding> getByPortfolio(@PathVariable Long portfolioId) {
         return holdingRepository.findByPortfolioId(portfolioId);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteHolding(@PathVariable Long id) {
+        if (!holdingRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        holdingRepository.deleteById(id);
+        return ResponseEntity.ok().body("Holding deleted");
+    }
 }
