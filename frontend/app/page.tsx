@@ -183,6 +183,9 @@ export default function Dashboard() {
                       <div>
                         <div className="text-sm font-medium text-gray-900">{h.ticker}</div>
                         <div className="text-xs text-gray-500">{h.companyName}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">
+                          {h.shares} {h.shares === 1 ? "share" : "shares"} · ${fmt(h.currentPrice)} each
+                        </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
