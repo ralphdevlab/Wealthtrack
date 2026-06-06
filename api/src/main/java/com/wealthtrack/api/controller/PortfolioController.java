@@ -33,10 +33,11 @@ public class PortfolioController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody CreatePortfolioRequest request) {
-        User user = userRepository.findById(request.getUserId()).orElse(null);
+    public ResponseEntity<?> create(@RequestBody CreatePortfolioRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
-            return ResponseEntity.badRequest().body("User not found");
+            return ResponseEntity.status(404).body("User not found");
         }
 
         Portfolio portfolio = new Portfolio();

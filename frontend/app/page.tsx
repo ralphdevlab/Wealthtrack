@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { useRouter } from "next/navigation";
 
 type HoldingPerformance = {
   id: number;
@@ -24,6 +25,11 @@ export default function Dashboard() {
   const [insightLoading, setInsightLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<HoldingPerformance | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const router = useRouter();
+  const [portfolioId, setPortfolioId] = useState<number | null>(null);
+  const [userName, setUserName] = useState("");
+  const [needsPortfolio, setNeedsPortfolio] = useState(false);
+  const [newPortfolioName, setNewPortfolioName] = useState("");
 
   // Form fields
   const [ticker, setTicker] = useState("");
@@ -33,8 +39,74 @@ export default function Dashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const loadHoldings = () => {
-    fetch("http://localhost:8080/api/portfolios/1/performance")
+  const getAuthHeaders = () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  const loadDashboard = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    setUserName(localStorage.getItem("firstName") || "");
+
+    try {
+      // Get the user's portfolios
+      const res = await fetch("http://localhost:8080/api/portfolios/me", {
+        headers: getAuthHeaders(),
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        // Token invalid/expired — back to login
+        localStorage.removeItem("token");
+        router.push("/login");
+        return;
+      }
+
+      const portfolios = await res.json();
+
+      if (!portfolios || portfolios.length === 0) {
+        // No portfolio yet — show the create prompt
+        setNeedsPortfolio(true);
+        setLoading(false);
+        return;
+      }
+
+      const pid = portfolios[0].id;
+      setPortfolioId(pid);
+      loadHoldings(pid);
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  const handleCreatePortfolio = async () => {
+    if (!newPortfolioName.trim()) return;
+    try {
+      const res = await fetch("http://localhost:8080/api/portfolios", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ name: newPortfolioName }),
+      });
+      const portfolio = await res.json();
+      setNeedsPortfolio(false);
+      setPortfolioId(portfolio.id);
+      loadHoldings(portfolio.id);
+    } catch {
+      // handle error
+    }
+  };
+
+  const loadHoldings = (pid: number) => {
+    fetch(`http://localhost:8080/api/portfolios/${pid}/performance`, {
+      headers: getAuthHeaders(),
+    })
       .then((res) => res.json())
       .then((data) => {
         setHoldings(data);
@@ -42,9 +114,10 @@ export default function Dashboard() {
       })
       .catch(() => setLoading(false));
 
-    // Fetch AI insights
     setInsightLoading(true);
-    fetch("http://localhost:8080/api/portfolios/1/insights")
+    fetch(`http://localhost:8080/api/portfolios/${pid}/insights`, {
+      headers: getAuthHeaders(),
+    })
       .then((res) => res.json())
       .then((data) => {
         setInsight(data.insight);
@@ -54,7 +127,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    loadHoldings();
+    loadDashboard();
   }, []);
 
   const handleSubmit = async () => {
@@ -70,13 +143,13 @@ export default function Dashboard() {
     try {
       const res = await fetch("http://localhost:8080/api/holdings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ticker,
           companyName,
           shares: parseFloat(shares),
           avgCostBasis: parseFloat(avgCostBasis),
-          portfolioId: 1,
+          portfolioId: portfolioId,
         }),
       });
 
@@ -92,7 +165,7 @@ export default function Dashboard() {
       setShares("");
       setAvgCostBasis("");
       setShowModal(false);
-      loadHoldings();
+      if (portfolioId) loadHoldings(portfolioId);
     } catch {
       setError("Something went wrong");
     }
@@ -105,11 +178,12 @@ export default function Dashboard() {
     try {
       await fetch(`http://localhost:8080/api/holdings/${deleteTarget.id}`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
       setDeleteTarget(null);
-      loadHoldings();
+      if (portfolioId) loadHoldings(portfolioId);
     } catch {
-      // silently fail for now
+      // silently fail
     }
     setDeleting(false);
   };
@@ -128,17 +202,51 @@ export default function Dashboard() {
 
         {/* Top bar */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-lg font-medium text-gray-900">Good morning, Ralph</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-[#639922] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#557f1d] transition-colors"
-          >
-            + Add holding
-          </button>
+          <h1 className="text-lg font-medium text-gray-900">
+            {userName ? `Welcome, ${userName}` : "Your portfolio"}
+          </h1>
+          <div className="flex items-center gap-3">
+            {!needsPortfolio && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="bg-[#639922] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#557f1d] transition-colors"
+              >
+                + Add holding
+              </button>
+            )}
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("firstName");
+                router.push("/login");
+              }}
+              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              Log out
+            </button>
+          </div>
         </div>
 
         {loading ? (
           <div className="text-gray-400">Loading your portfolio...</div>
+        ) : needsPortfolio ? (
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center max-w-md mx-auto mt-12">
+            <div className="text-lg font-medium text-gray-900 mb-2">Create your first portfolio</div>
+            <div className="text-sm text-gray-500 mb-5">Give it a name to get started — like "Brokerage" or "Retirement".</div>
+            <input
+              value={newPortfolioName}
+              onChange={(e) => setNewPortfolioName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
+              placeholder="My Portfolio"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[#639922]"
+            />
+            <button
+              onClick={handleCreatePortfolio}
+              className="w-full bg-[#639922] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#557f1d] transition-colors"
+            >
+              Create portfolio
+            </button>
+          </div>
         ) : (
           <>
             <div className="text-sm text-gray-500 mb-1">Total portfolio value</div>
