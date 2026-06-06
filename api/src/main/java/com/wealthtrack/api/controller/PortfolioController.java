@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,17 @@ public class PortfolioController {
         List<HoldingPerformance> performance = portfolioService.getPerformance(portfolioId);
         String insight = aiInsightService.generateInsight(performance);
         return Map.of("insight", insight);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyPortfolios(Authentication authentication) {
+        String email = authentication.getName();  // comes from the JWT
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+        List<Portfolio> portfolios = portfolioRepository.findByUserId(user.getId());
+        return ResponseEntity.ok(portfolios);
     }
     
 }
