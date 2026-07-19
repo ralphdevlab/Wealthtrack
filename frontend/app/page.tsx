@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [userName, setUserName] = useState("");
   const [needsPortfolio, setNeedsPortfolio] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState("");
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   // Form fields
   const [ticker, setTicker] = useState("");
@@ -186,6 +188,22 @@ export default function Dashboard() {
       // silently fail
     }
     setDeleting(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    try {
+      await fetch("http://localhost:8080/api/users/me", {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      // Clear token and send to login
+      localStorage.removeItem("token");
+      localStorage.removeItem("firstName");
+      router.push("/login");
+    } catch {
+      setDeletingAccount(false);
+    }
   };
 
   const totalValue = holdings.reduce((sum, h) => sum + h.marketValue, 0);
@@ -424,6 +442,18 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+
+              {/* Footer with delete account */}
+            {!needsPortfolio && (
+              <div className="mt-8 pt-4 border-t border-gray-200 text-center">
+                <button
+                  onClick={() => setShowDeleteAccount(true)}
+                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  Delete my account
+                </button>
+              </div>
+            )}
             </div>
           </>
         )}
@@ -515,6 +545,33 @@ export default function Dashboard() {
                 className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {deleting ? "Deleting..." : "Yes, delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete account confirmation */}
+      {showDeleteAccount && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Delete your account?</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              This will permanently delete your account, all your portfolios, and all your holdings. This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteAccount(false)}
+                className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deletingAccount ? "Deleting..." : "Delete forever"}
               </button>
             </div>
           </div>
