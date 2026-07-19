@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useRouter } from "next/navigation";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type HoldingPerformance = {
   id: number;
@@ -60,7 +61,7 @@ export default function Dashboard() {
 
     try {
       // Get the user's portfolios
-      const res = await fetch("http://localhost:8080/api/portfolios/me", {
+      const res = await fetch(`${API}/api/portfolios/me`, {
         headers: getAuthHeaders(),
       });
 
@@ -91,7 +92,7 @@ export default function Dashboard() {
   const handleCreatePortfolio = async () => {
     if (!newPortfolioName.trim()) return;
     try {
-      const res = await fetch("http://localhost:8080/api/portfolios", {
+      const res = await fetch(`${API}/api/portfolios`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({ name: newPortfolioName }),
@@ -106,7 +107,7 @@ export default function Dashboard() {
   };
 
   const loadHoldings = (pid: number) => {
-    fetch(`http://localhost:8080/api/portfolios/${pid}/performance`, {
+    fetch(`${API}/api/portfolios/${pid}/performance`, {
       headers: getAuthHeaders(),
     })
       .then((res) => res.json())
@@ -117,7 +118,7 @@ export default function Dashboard() {
       .catch(() => setLoading(false));
 
     setInsightLoading(true);
-    fetch(`http://localhost:8080/api/portfolios/${pid}/insights`, {
+    fetch(`${API}/api/portfolios/${pid}/insights`, {
       headers: getAuthHeaders(),
     })
       .then((res) => res.json())
@@ -143,7 +144,7 @@ export default function Dashboard() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8080/api/holdings", {
+      const res = await fetch(`${API}/api/holdings`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -178,7 +179,7 @@ export default function Dashboard() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await fetch(`http://localhost:8080/api/holdings/${deleteTarget.id}`, {
+      await fetch(`${API}/api/holdings/${deleteTarget.id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
@@ -193,7 +194,7 @@ export default function Dashboard() {
   const handleDeleteAccount = async () => {
     setDeletingAccount(true);
     try {
-      await fetch("http://localhost:8080/api/users/me", {
+      await fetch(`${API}/api/users/me`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
