@@ -355,7 +355,7 @@ export default function Dashboard() {
                           <Cell key={i} fill={["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => `$${fmt(value)}`} />
+                      <Tooltip formatter={(value) => `$${fmt(Number(value))}`} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
