@@ -4,7 +4,7 @@ A full-stack web application for tracking investment portfolios in real time. Us
 
 Built with Java/Spring Boot, PostgreSQL, and a Next.js/TypeScript frontend. Fully deployed with JWT-secured authentication.
 
-**Live demo:** https://wealthtrack-api.vercel.app
+**Live demo:** (https://wealthtrack-6cqz.vercel.app/)
 
 > _The backend runs on a free hosting tier and sleeps after inactivity — the first request may take up to a minute to wake up._
 
