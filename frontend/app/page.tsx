@@ -222,38 +222,38 @@ export default function Dashboard() {
     n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="min-h-screen bg-[#f7f9fc]">
+    <div className="min-h-screen bg-[#F1F5FB]">
       {/* Sidebar */}
-      <aside className="w-[190px] fixed inset-y-0 left-0 bg-white border-r border-gray-200 flex flex-col z-40">
+      <aside className="w-[190px] fixed inset-y-0 left-0 bg-white border-r border-[#DCE7F5] flex flex-col z-40">
         <div className="px-5 py-6">
-          <div className="text-lg font-semibold text-[#27500A]">WealthTrack</div>
+          <div className="text-lg font-semibold text-[#185FA5]">WealthTrack</div>
         </div>
 
         <nav className="flex-1 px-3 space-y-1">
           <a
             href="#top"
-            className="block px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-900"
+            className="block px-3 py-2 rounded-lg text-sm font-medium bg-[#E6F1FB] text-[#185FA5]"
           >
             Dashboard
           </a>
           <a
             href="#holdings"
-            className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-[#E6F1FB] hover:text-[#185FA5] transition-colors"
           >
             Holdings
           </a>
           <a
             href="#insights"
-            className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-[#E6F1FB] hover:text-[#185FA5] transition-colors"
           >
             AI insights
           </a>
         </nav>
 
-        <div className="border-t border-gray-200 px-3 py-4 space-y-1">
+        <div className="border-t border-[#DCE7F5] px-3 py-4 space-y-1">
           <button
             onClick={handleLogout}
-            className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-[#E6F1FB] hover:text-[#185FA5] transition-colors"
           >
             Log out
           </button>
@@ -288,7 +288,7 @@ export default function Dashboard() {
           {loading ? (
             <div className="text-gray-400">Loading your portfolio...</div>
           ) : needsPortfolio ? (
-            <div className="bg-white border border-gray-200 rounded-xl p-8 text-center max-w-md mx-auto mt-12">
+            <div className="bg-white border border-[#DCE7F5] rounded-xl p-8 text-center max-w-md mx-auto mt-12">
               <div className="text-lg font-medium text-gray-900 mb-2">Create your first portfolio</div>
               <div className="text-sm text-gray-500 mb-5">Give it a name to get started — like "Brokerage" or "Retirement".</div>
               <input
@@ -296,11 +296,11 @@ export default function Dashboard() {
                 onChange={(e) => setNewPortfolioName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
                 placeholder="My Portfolio"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[#639922]"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[#378ADD]"
               />
               <button
                 onClick={handleCreatePortfolio}
-                className="w-full bg-[#639922] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#557f1d] transition-colors"
+                className="w-full bg-[#378ADD] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#185FA5] transition-colors"
               >
                 Create portfolio
               </button>
@@ -321,17 +321,17 @@ export default function Dashboard() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <div className="bg-white border border-[#DCE7F5] rounded-xl p-4">
                   <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Invested</div>
                   <div className="text-xl font-semibold text-gray-900">${fmt(totalCost)}</div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <div className="bg-white border border-[#DCE7F5] rounded-xl p-4">
                   <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total gain</div>
                   <div className={`text-xl font-semibold ${totalGain >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
                     {totalGain >= 0 ? "+" : ""}${fmt(totalGain)}
                   </div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <div className="bg-white border border-[#DCE7F5] rounded-xl p-4">
                   <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Holdings</div>
                   <div className="text-xl font-semibold text-gray-900">{holdings.length}</div>
                 </div>
@@ -339,7 +339,7 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 {/* Holdings list */}
-                <div id="holdings" className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
+                <div id="holdings" className="lg:col-span-2 bg-white border border-[#DCE7F5] rounded-xl p-5">
                   <div className="text-sm font-medium text-gray-900 mb-4">Holdings</div>
                   {holdings.length === 0 ? (
                     <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
@@ -374,7 +374,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Allocation pie chart */}
-                <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <div className="bg-white border border-[#DCE7F5] rounded-xl p-5">
                   <div className="text-sm font-medium text-gray-900 mb-4">Allocation</div>
                   {holdings.length === 0 ? (
                     <div className="text-sm text-gray-400 py-4">Add holdings to see allocation.</div>
@@ -391,7 +391,7 @@ export default function Dashboard() {
                           innerRadius={40}
                         >
                           {holdings.map((_, i) => (
-                            <Cell key={i} fill={["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6]} />
+                            <Cell key={i} fill={["#378ADD", "#185FA5", "#7EB6EA", "#9FB8CC", "#5BA3E8", "#639922"][i % 6]} />
                           ))}
                         </Pie>
                         <Tooltip formatter={(value) => `$${fmt(Number(value))}`} />
@@ -404,7 +404,7 @@ export default function Dashboard() {
                       <div key={h.ticker} className="flex items-center gap-2 text-xs">
                         <span
                           className="w-2.5 h-2.5 rounded-full inline-block"
-                          style={{ background: ["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6] }}
+                          style={{ background: ["#378ADD", "#185FA5", "#7EB6EA", "#9FB8CC", "#5BA3E8", "#639922"][i % 6] }}
                         ></span>
                         <span className="text-gray-600">{h.ticker}</span>
                         <span className="text-gray-400 ml-auto">
@@ -420,7 +420,7 @@ export default function Dashboard() {
               <div id="insights" className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
 
                 {/* AI Insights - takes 2 columns */}
-                <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
+                <div className="lg:col-span-2 bg-white border border-[#DCE7F5] rounded-xl p-5">
                   <div className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
                     AI Insights
                     <span className="text-xs bg-[#E6F1FB] text-[#185FA5] px-2 py-0.5 rounded-full font-normal">
@@ -439,7 +439,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Best & Worst Performer */}
-                <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <div className="bg-white border border-[#DCE7F5] rounded-xl p-5">
                   <div className="text-sm font-medium text-gray-900 mb-3">Performance</div>
                   {holdings.length === 0 ? (
                     <div className="text-sm text-gray-400">No data yet.</div>
@@ -466,7 +466,7 @@ export default function Dashboard() {
                         const worst = [...holdings].sort((a, b) => a.gainLossPercent - b.gainLossPercent)[0];
                         const isLoss = worst.gainLossPercent < 0;
                         return (
-                          <div className={`rounded-lg p-3 border ${isLoss ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"}`}>
+                          <div className={`rounded-lg p-3 border ${isLoss ? "bg-red-50 border-red-200" : "bg-[#F1F5FB] border-[#DCE7F5]"}`}>
                             <div className={`text-xs uppercase tracking-wide mb-1 ${isLoss ? "text-red-700" : "text-gray-500"}`}>
                               {isLoss ? "Biggest loss" : "Lowest gain"}
                             </div>
@@ -504,7 +504,7 @@ export default function Dashboard() {
                   value={ticker}
                   onChange={(e) => setTicker(e.target.value.toUpperCase())}
                   placeholder="AAPL"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#639922]"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#378ADD]"
                 />
               </div>
               <div>
@@ -513,7 +513,7 @@ export default function Dashboard() {
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Apple Inc."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#639922]"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#378ADD]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -524,7 +524,7 @@ export default function Dashboard() {
                     onChange={(e) => setShares(e.target.value)}
                     placeholder="10"
                     type="number"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#639922]"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#378ADD]"
                   />
                 </div>
                 <div>
@@ -534,7 +534,7 @@ export default function Dashboard() {
                     onChange={(e) => setAvgCostBasis(e.target.value)}
                     placeholder="150.00"
                     type="number"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#639922]"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#378ADD]"
                   />
                 </div>
               </div>
