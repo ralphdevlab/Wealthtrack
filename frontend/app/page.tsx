@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useRouter } from "next/navigation";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -41,6 +41,11 @@ export default function Dashboard() {
   const [avgCostBasis, setAvgCostBasis] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Ticker autocomplete
+  const [suggestions, setSuggestions] = useState<{ symbol: string; description: string }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getAuthHeaders = () => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -167,12 +172,54 @@ export default function Dashboard() {
       setCompanyName("");
       setShares("");
       setAvgCostBasis("");
+      setSuggestions([]);
+      setShowSuggestions(false);
       setShowModal(false);
       if (portfolioId) loadHoldings(portfolioId);
     } catch {
       setError("Something went wrong");
     }
     setSubmitting(false);
+  };
+
+  const handleTickerChange = (value: string) => {
+    const upper = value.toUpperCase();
+    setTicker(upper);
+
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
+
+    if (upper.trim().length < 1) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    searchDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API}/api/market/search?q=${encodeURIComponent(upper)}`, {
+          headers: getAuthHeaders(),
+        });
+        if (!res.ok) return;
+        const results = await res.json();
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch {
+        // silently ignore — autocomplete is best-effort
+      }
+    }, 300);
+  };
+
+  const handleSelectSuggestion = (suggestion: { symbol: string; description: string }) => {
+    setTicker(suggestion.symbol);
+    setCompanyName(suggestion.description);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const closeAddModal = () => {
+    setShowModal(false);
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   const handleDelete = async () => {
@@ -494,18 +541,36 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-semibold text-gray-900">Add a holding</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+              <button onClick={closeAddModal} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
             </div>
 
             <div className="space-y-3">
-              <div>
+              <div className="relative">
                 <label className="text-xs text-gray-500 uppercase tracking-wide">Ticker</label>
                 <input
                   value={ticker}
-                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                  onChange={(e) => handleTickerChange(e.target.value)}
+                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   placeholder="AAPL"
+                  autoComplete="off"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#378ADD]"
                 />
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-[#DCE7F5] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.symbol}
+                        type="button"
+                        onMouseDown={() => handleSelectSuggestion(s)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-[#E6F1FB] transition-colors flex items-center justify-between gap-2"
+                      >
+                        <span className="font-medium text-gray-900">{s.symbol}</span>
+                        <span className="text-gray-500 truncate">{s.description}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-xs text-gray-500 uppercase tracking-wide">Company name</label>
