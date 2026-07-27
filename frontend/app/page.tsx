@@ -191,6 +191,12 @@ export default function Dashboard() {
     setDeleting(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("firstName");
+    router.push("/login");
+  };
+
   const handleDeleteAccount = async () => {
     setDeletingAccount(true);
     try {
@@ -216,15 +222,59 @@ export default function Dashboard() {
     n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="min-h-screen bg-[#f7f9fc] p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#f7f9fc]">
+      {/* Sidebar */}
+      <aside className="w-[190px] fixed inset-y-0 left-0 bg-white border-r border-gray-200 flex flex-col z-40">
+        <div className="px-5 py-6">
+          <div className="text-lg font-semibold text-[#27500A]">WealthTrack</div>
+        </div>
 
-        {/* Top bar */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-lg font-medium text-gray-900">
-            {userName ? `Welcome, ${userName}` : "Your portfolio"}
-          </h1>
-          <div className="flex items-center gap-3">
+        <nav className="flex-1 px-3 space-y-1">
+          <a
+            href="#top"
+            className="block px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-900"
+          >
+            Dashboard
+          </a>
+          <a
+            href="#holdings"
+            className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          >
+            Holdings
+          </a>
+          <a
+            href="#insights"
+            className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          >
+            AI insights
+          </a>
+        </nav>
+
+        <div className="border-t border-gray-200 px-3 py-4 space-y-1">
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
+          >
+            Log out
+          </button>
+          <button
+            onClick={() => setShowDeleteAccount(true)}
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            Delete account
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="ml-[190px] p-8">
+        <div className="max-w-5xl mx-auto" id="top">
+
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-lg font-medium text-gray-900">
+              {userName ? `Welcome, ${userName}` : "Your portfolio"}
+            </h1>
             {!needsPortfolio && (
               <button
                 onClick={() => setShowModal(true)}
@@ -233,232 +283,210 @@ export default function Dashboard() {
                 + Add holding
               </button>
             )}
-            <button
-              onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("firstName");
-                router.push("/login");
-              }}
-              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
-            >
-              Log out
-            </button>
           </div>
-        </div>
 
-        {loading ? (
-          <div className="text-gray-400">Loading your portfolio...</div>
-        ) : needsPortfolio ? (
-          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center max-w-md mx-auto mt-12">
-            <div className="text-lg font-medium text-gray-900 mb-2">Create your first portfolio</div>
-            <div className="text-sm text-gray-500 mb-5">Give it a name to get started — like "Brokerage" or "Retirement".</div>
-            <input
-              value={newPortfolioName}
-              onChange={(e) => setNewPortfolioName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
-              placeholder="My Portfolio"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[#639922]"
-            />
-            <button
-              onClick={handleCreatePortfolio}
-              className="w-full bg-[#639922] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#557f1d] transition-colors"
-            >
-              Create portfolio
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="text-sm text-gray-500 mb-1">Total portfolio value</div>
-            <div className="text-4xl font-semibold text-gray-900 mb-2">${fmt(totalValue)}</div>
-            <div className="flex items-center gap-3 mb-8">
-              <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                totalGain >= 0 ? "bg-[#EAF3DE] text-[#27500A]" : "bg-red-100 text-red-700"
-              }`}>
-                {totalGain >= 0 ? "↑" : "↓"} ${fmt(Math.abs(totalGain))}
-              </span>
-              <span className="text-sm text-gray-500">
-                {totalGainPercent >= 0 ? "+" : ""}{totalGainPercent.toFixed(2)}% all time
-              </span>
+          {loading ? (
+            <div className="text-gray-400">Loading your portfolio...</div>
+          ) : needsPortfolio ? (
+            <div className="bg-white border border-gray-200 rounded-xl p-8 text-center max-w-md mx-auto mt-12">
+              <div className="text-lg font-medium text-gray-900 mb-2">Create your first portfolio</div>
+              <div className="text-sm text-gray-500 mb-5">Give it a name to get started — like "Brokerage" or "Retirement".</div>
+              <input
+                value={newPortfolioName}
+                onChange={(e) => setNewPortfolioName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreatePortfolio()}
+                placeholder="My Portfolio"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-[#639922]"
+              />
+              <button
+                onClick={handleCreatePortfolio}
+                className="w-full bg-[#639922] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#557f1d] transition-colors"
+              >
+                Create portfolio
+              </button>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-              <div className="bg-white border border-gray-200 rounded-xl p-4">
-                <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Invested</div>
-                <div className="text-xl font-semibold text-gray-900">${fmt(totalCost)}</div>
+          ) : (
+            <>
+              <div className="text-sm text-gray-500 mb-1">Total portfolio value</div>
+              <div className="text-4xl font-semibold text-gray-900 mb-2">${fmt(totalValue)}</div>
+              <div className="flex items-center gap-3 mb-8">
+                <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                  totalGain >= 0 ? "bg-[#EAF3DE] text-[#27500A]" : "bg-red-100 text-red-700"
+                }`}>
+                  {totalGain >= 0 ? "↑" : "↓"} ${fmt(Math.abs(totalGain))}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {totalGainPercent >= 0 ? "+" : ""}{totalGainPercent.toFixed(2)}% all time
+                </span>
               </div>
-              <div className="bg-white border border-gray-200 rounded-xl p-4">
-                <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total gain</div>
-                <div className={`text-xl font-semibold ${totalGain >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
-                  {totalGain >= 0 ? "+" : ""}${fmt(totalGain)}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Invested</div>
+                  <div className="text-xl font-semibold text-gray-900">${fmt(totalCost)}</div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total gain</div>
+                  <div className={`text-xl font-semibold ${totalGain >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
+                    {totalGain >= 0 ? "+" : ""}${fmt(totalGain)}
+                  </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Holdings</div>
+                  <div className="text-xl font-semibold text-gray-900">{holdings.length}</div>
                 </div>
               </div>
-              <div className="bg-white border border-gray-200 rounded-xl p-4">
-                <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Holdings</div>
-                <div className="text-xl font-semibold text-gray-900">{holdings.length}</div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-              {/* Holdings list */}
-              <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
-                <div className="text-sm font-medium text-gray-900 mb-4">Holdings</div>
-                {holdings.length === 0 ? (
-                  <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
-                ) : (
-                  holdings.map((h) => (
-                    <div key={h.ticker} className="group flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{h.ticker}</div>
-                        <div className="text-xs text-gray-500">{h.companyName}</div>
-                        <div className="text-xs text-gray-400 mt-0.5">
-                          {h.shares} {h.shares === 1 ? "share" : "shares"} · ${fmt(h.currentPrice)} each
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-gray-900">${fmt(h.marketValue)}</div>
-                          <div className={`text-xs ${h.gainLoss >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
-                            {h.gainLossPercent >= 0 ? "+" : ""}{h.gainLossPercent.toFixed(2)}%
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {/* Holdings list */}
+                <div id="holdings" className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
+                  <div className="text-sm font-medium text-gray-900 mb-4">Holdings</div>
+                  {holdings.length === 0 ? (
+                    <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
+                  ) : (
+                    holdings.map((h) => (
+                      <div key={h.ticker} className="group flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{h.ticker}</div>
+                          <div className="text-xs text-gray-500">{h.companyName}</div>
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            {h.shares} {h.shares === 1 ? "share" : "shares"} · ${fmt(h.currentPrice)} each
                           </div>
                         </div>
-                        <button
-                          onClick={() => setDeleteTarget(h)}
-                          className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 text-lg"
-                          title="Delete holding"
-                        >
-                          🗑
-                        </button>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-900">${fmt(h.marketValue)}</div>
+                            <div className={`text-xs ${h.gainLoss >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
+                              {h.gainLossPercent >= 0 ? "+" : ""}{h.gainLossPercent.toFixed(2)}%
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setDeleteTarget(h)}
+                            className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 text-lg"
+                            title="Delete holding"
+                          >
+                            🗑
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    ))
+                  )}
+                </div>
 
-              {/* Allocation pie chart */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <div className="text-sm font-medium text-gray-900 mb-4">Allocation</div>
-                {holdings.length === 0 ? (
-                  <div className="text-sm text-gray-400 py-4">Add holdings to see allocation.</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={holdings.map((h) => ({ name: h.ticker, value: h.marketValue }))}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={70}
-                        innerRadius={40}
-                      >
-                        {holdings.map((_, i) => (
-                          <Cell key={i} fill={["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => `$${fmt(Number(value))}`} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-                {/* Legend */}
-                <div className="mt-2 space-y-1">
-                  {holdings.map((h, i) => (
-                    <div key={h.ticker} className="flex items-center gap-2 text-xs">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full inline-block"
-                        style={{ background: ["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6] }}
-                      ></span>
-                      <span className="text-gray-600">{h.ticker}</span>
-                      <span className="text-gray-400 ml-auto">
-                        {totalValue > 0 ? ((h.marketValue / totalValue) * 100).toFixed(1) : 0}%
-                      </span>
-                    </div>
-                  ))}
+                {/* Allocation pie chart */}
+                <div className="bg-white border border-gray-200 rounded-xl p-5">
+                  <div className="text-sm font-medium text-gray-900 mb-4">Allocation</div>
+                  {holdings.length === 0 ? (
+                    <div className="text-sm text-gray-400 py-4">Add holdings to see allocation.</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={holdings.map((h) => ({ name: h.ticker, value: h.marketValue }))}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={70}
+                          innerRadius={40}
+                        >
+                          {holdings.map((_, i) => (
+                            <Cell key={i} fill={["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => `$${fmt(Number(value))}`} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                  {/* Legend */}
+                  <div className="mt-2 space-y-1">
+                    {holdings.map((h, i) => (
+                      <div key={h.ticker} className="flex items-center gap-2 text-xs">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full inline-block"
+                          style={{ background: ["#639922", "#378ADD", "#27500A", "#185FA5", "#8FBF5A", "#5BA3E8"][i % 6] }}
+                        ></span>
+                        <span className="text-gray-600">{h.ticker}</span>
+                        <span className="text-gray-400 ml-auto">
+                          {totalValue > 0 ? ((h.marketValue / totalValue) * 100).toFixed(1) : 0}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
               {/* AI Insights + Performers row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
+              <div id="insights" className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
 
-              {/* AI Insights - takes 2 columns */}
-              <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
-                <div className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  AI Insights
-                  <span className="text-xs bg-[#E6F1FB] text-[#185FA5] px-2 py-0.5 rounded-full font-normal">
-                    ✨ Powered by AI
-                  </span>
-                </div>
-                {insightLoading ? (
-                  <div className="text-sm text-gray-400">Analyzing your portfolio...</div>
-                ) : (
-                  <div className="bg-[#E6F1FB] border border-[#B5D4F4] rounded-lg p-4">
-                    <div className="text-sm text-[#185FA5] leading-relaxed whitespace-pre-line">
-                      {insight}
+                {/* AI Insights - takes 2 columns */}
+                <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5">
+                  <div className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    AI Insights
+                    <span className="text-xs bg-[#E6F1FB] text-[#185FA5] px-2 py-0.5 rounded-full font-normal">
+                      ✨ Powered by AI
+                    </span>
+                  </div>
+                  {insightLoading ? (
+                    <div className="text-sm text-gray-400">Analyzing your portfolio...</div>
+                  ) : (
+                    <div className="bg-[#E6F1FB] border border-[#B5D4F4] rounded-lg p-4">
+                      <div className="text-sm text-[#185FA5] leading-relaxed whitespace-pre-line">
+                        {insight}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              {/* Best & Worst Performer */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <div className="text-sm font-medium text-gray-900 mb-3">Performance</div>
-                {holdings.length === 0 ? (
-                  <div className="text-sm text-gray-400">No data yet.</div>
-                ) : (
-                  <div className="space-y-3">
-                    {/* Best performer */}
-                    {(() => {
-                      const best = [...holdings].sort((a, b) => b.gainLossPercent - a.gainLossPercent)[0];
-                      return (
-                        <div className="bg-[#EAF3DE] border border-[#C0DD97] rounded-lg p-3">
-                          <div className="text-xs text-[#27500A] uppercase tracking-wide mb-1">Top performer</div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-900">{best.ticker}</span>
-                            <span className="text-sm font-semibold text-[#3B6D11]">
-                              +{best.gainLossPercent.toFixed(2)}%
-                            </span>
+                {/* Best & Worst Performer */}
+                <div className="bg-white border border-gray-200 rounded-xl p-5">
+                  <div className="text-sm font-medium text-gray-900 mb-3">Performance</div>
+                  {holdings.length === 0 ? (
+                    <div className="text-sm text-gray-400">No data yet.</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {/* Best performer */}
+                      {(() => {
+                        const best = [...holdings].sort((a, b) => b.gainLossPercent - a.gainLossPercent)[0];
+                        return (
+                          <div className="bg-[#EAF3DE] border border-[#C0DD97] rounded-lg p-3">
+                            <div className="text-xs text-[#27500A] uppercase tracking-wide mb-1">Top performer</div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">{best.ticker}</span>
+                              <span className="text-sm font-semibold text-[#3B6D11]">
+                                +{best.gainLossPercent.toFixed(2)}%
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })()}
+                        );
+                      })()}
 
-                    {/* Worst performer */}
-                    {(() => {
-                      const worst = [...holdings].sort((a, b) => a.gainLossPercent - b.gainLossPercent)[0];
-                      const isLoss = worst.gainLossPercent < 0;
-                      return (
-                        <div className={`rounded-lg p-3 border ${isLoss ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"}`}>
-                          <div className={`text-xs uppercase tracking-wide mb-1 ${isLoss ? "text-red-700" : "text-gray-500"}`}>
-                            {isLoss ? "Biggest loss" : "Lowest gain"}
+                      {/* Worst performer */}
+                      {(() => {
+                        const worst = [...holdings].sort((a, b) => a.gainLossPercent - b.gainLossPercent)[0];
+                        const isLoss = worst.gainLossPercent < 0;
+                        return (
+                          <div className={`rounded-lg p-3 border ${isLoss ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"}`}>
+                            <div className={`text-xs uppercase tracking-wide mb-1 ${isLoss ? "text-red-700" : "text-gray-500"}`}>
+                              {isLoss ? "Biggest loss" : "Lowest gain"}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">{worst.ticker}</span>
+                              <span className={`text-sm font-semibold ${isLoss ? "text-red-600" : "text-gray-600"}`}>
+                                {worst.gainLossPercent >= 0 ? "+" : ""}{worst.gainLossPercent.toFixed(2)}%
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-900">{worst.ticker}</span>
-                            <span className={`text-sm font-semibold ${isLoss ? "text-red-600" : "text-gray-600"}`}>
-                              {worst.gainLossPercent >= 0 ? "+" : ""}{worst.gainLossPercent.toFixed(2)}%
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {/* Footer with delete account */}
-            {!needsPortfolio && (
-              <div className="mt-8 pt-4 border-t border-gray-200 text-center">
-                <button
-                  onClick={() => setShowDeleteAccount(true)}
-                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-                >
-                  Delete my account
-                </button>
-              </div>
-            )}
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      </main>
 
       {/* Add Holding Modal */}
       {showModal && (
