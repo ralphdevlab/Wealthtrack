@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useRouter } from "next/navigation";
+import { fetchResilient } from "./lib/fetchResilient";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type HoldingPerformance = {
@@ -34,6 +35,8 @@ export default function Dashboard() {
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [wakingUp, setWakingUp] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   // Form fields
   const [ticker, setTicker] = useState("");
@@ -64,12 +67,19 @@ export default function Dashboard() {
     }
 
     setUserName(localStorage.getItem("firstName") || "");
+    setLoadError(false);
 
     try {
       // Get the user's portfolios
-      const res = await fetch(`${API}/api/portfolios/me`, {
-        headers: getAuthHeaders(),
-      });
+      const res = await fetchResilient(
+        `${API}/api/portfolios/me`,
+        { headers: getAuthHeaders() },
+        {
+          onStatusChange: (status) => {
+            setWakingUp(status === "waking");
+          },
+        }
+      );
 
       if (res.status === 401 || res.status === 403) {
         // Token invalid/expired — back to login
@@ -91,6 +101,8 @@ export default function Dashboard() {
       setPortfolioId(pid);
       loadHoldings(pid);
     } catch {
+      setWakingUp(false);
+      setLoadError(true);
       setLoading(false);
     }
   };
@@ -365,7 +377,28 @@ export default function Dashboard() {
             )}
           </div>
 
-          {loading ? (
+          {wakingUp && (
+            <div className="flex items-center gap-3 bg-[#E6F1FB] border border-[#B5D4F4] text-[#185FA5] rounded-lg px-4 py-3 text-sm mb-6">
+              <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Waking up the server, this can take up to a minute…
+            </div>
+          )}
+
+          {loadError ? (
+            <div className="bg-white border border-[#DCE7F5] rounded-xl p-8 text-center max-w-md mx-auto mt-12">
+              <div className="text-lg font-medium text-gray-900 mb-2">Couldn&apos;t reach the server</div>
+              <div className="text-sm text-gray-500 mb-5">Please try again in a moment.</div>
+              <button
+                onClick={() => { setLoading(true); loadDashboard(); }}
+                className="bg-[#378ADD] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[#185FA5] transition-colors"
+              >
+                Try again
+              </button>
+            </div>
+          ) : loading ? (
             <div className="text-gray-400">Loading your portfolio...</div>
           ) : needsPortfolio ? (
             <div className="bg-white border border-[#DCE7F5] rounded-xl p-8 text-center max-w-md mx-auto mt-12">

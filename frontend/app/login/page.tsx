@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { fetchResilient } from "../lib/fetchResilient";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function LoginPage() {
@@ -16,6 +17,7 @@ export default function LoginPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [wakingUp, setWakingUp] = useState(false);
 
   const handleSubmit = async () => {
     setError("");
@@ -38,11 +40,19 @@ export default function LoginPage() {
       : { email, password };
 
     try {
-      const res = await fetch(`${API}/api/auth/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await fetchResilient(
+        `${API}/api/auth/${endpoint}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+        {
+          onStatusChange: (status) => {
+            setWakingUp(status === "waking");
+          },
+        }
+      );
 
       if (!res.ok) {
         const text = await res.text();
@@ -60,7 +70,8 @@ export default function LoginPage() {
       // Go to dashboard
       router.push("/");
     } catch {
-      setError("Something went wrong. Is the server running?");
+      setWakingUp(false);
+      setError("Couldn't reach the server — please try again in a moment.");
     }
     setLoading(false);
   };
@@ -120,6 +131,16 @@ export default function LoginPage() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 text-sm focus:outline-none focus:border-[#639922]"
             />
           </div>
+
+          {wakingUp && (
+            <div className="flex items-center gap-3 bg-[#E6F1FB] border border-[#B5D4F4] text-[#185FA5] rounded-lg px-3 py-2.5 text-sm">
+              <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Waking up the server, this can take up to a minute…
+            </div>
+          )}
 
           {error && <div className="text-sm text-red-600">{error}</div>}
 
