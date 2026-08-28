@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useRouter } from "next/navigation";
 import { fetchResilient } from "./lib/fetchResilient";
+import { DashboardSkeleton, InsightsSkeleton } from "./components/Skeletons";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type HoldingPerformance = {
@@ -399,7 +400,7 @@ export default function Dashboard() {
               </button>
             </div>
           ) : loading ? (
-            <div className="text-gray-400">Loading your portfolio...</div>
+            <DashboardSkeleton />
           ) : needsPortfolio ? (
             <div className="bg-white border border-[#DCE7F5] rounded-xl p-8 text-center max-w-md mx-auto mt-12">
               <div className="text-lg font-medium text-gray-900 mb-2">Create your first portfolio</div>
@@ -541,7 +542,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   {insightLoading ? (
-                    <div className="text-sm text-gray-400">Analyzing your portfolio...</div>
+                    <InsightsSkeleton />
                   ) : (
                     <div className="bg-[#E6F1FB] border border-[#B5D4F4] rounded-lg p-4">
                       <div className="text-sm text-[#185FA5] leading-relaxed whitespace-pre-line">
