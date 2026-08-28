@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useRouter } from "next/navigation";
 import { fetchResilient } from "./lib/fetchResilient";
 import { DashboardSkeleton, InsightsSkeleton } from "./components/Skeletons";
+import { useCountUp } from "./components/CountUp";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 type HoldingPerformance = {
@@ -278,6 +279,7 @@ export default function Dashboard() {
   const totalCost = holdings.reduce((sum, h) => sum + h.totalCost, 0);
   const totalGain = totalValue - totalCost;
   const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
+  const displayedTotalValue = useCountUp(totalValue);
 
   const fmt = (n: number) =>
     n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -422,7 +424,7 @@ export default function Dashboard() {
           ) : (
             <>
               <div className="text-sm text-gray-500 mb-1">Total portfolio value</div>
-              <div className="text-4xl font-semibold text-gray-900 mb-2">${fmt(totalValue)}</div>
+              <div className="text-4xl font-semibold text-gray-900 mb-2">${fmt(displayedTotalValue)}</div>
               <div className="flex items-center gap-3 mb-8">
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                   totalGain >= 0 ? "bg-[#EAF3DE] text-[#27500A]" : "bg-red-100 text-red-700"
@@ -434,7 +436,7 @@ export default function Dashboard() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 animate-fade-in-up" style={{ animationDelay: "0ms" }}>
                 <div className="bg-white border border-[#DCE7F5] rounded-xl p-4">
                   <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Invested</div>
                   <div className="text-xl font-semibold text-gray-900">${fmt(totalCost)}</div>
@@ -453,7 +455,7 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 {/* Holdings list */}
-                <div id="holdings" className="lg:col-span-2 bg-white border border-[#DCE7F5] rounded-xl p-5">
+                <div id="holdings" className="lg:col-span-2 bg-white border border-[#DCE7F5] rounded-xl p-5 animate-fade-in-up" style={{ animationDelay: "60ms" }}>
                   <div className="text-sm font-medium text-gray-900 mb-4">Holdings</div>
                   {holdings.length === 0 ? (
                     <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
@@ -488,7 +490,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Allocation pie chart */}
-                <div className="bg-white border border-[#DCE7F5] rounded-xl p-5">
+                <div className="bg-white border border-[#DCE7F5] rounded-xl p-5 animate-fade-in-up" style={{ animationDelay: "120ms" }}>
                   <div className="text-sm font-medium text-gray-900 mb-4">Allocation</div>
                   {holdings.length === 0 ? (
                     <div className="text-sm text-gray-400 py-4">Add holdings to see allocation.</div>
@@ -531,7 +533,7 @@ export default function Dashboard() {
               </div>
 
               {/* AI Insights + Performers row */}
-              <div id="insights" className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
+              <div id="insights" className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3 animate-fade-in-up" style={{ animationDelay: "180ms" }}>
 
                 {/* AI Insights - takes 2 columns */}
                 <div className="lg:col-span-2 bg-white border border-[#DCE7F5] rounded-xl p-5">
