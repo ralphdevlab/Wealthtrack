@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [newPortfolioName, setNewPortfolioName] = useState("");
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Form fields
   const [ticker, setTicker] = useState("");
@@ -270,8 +271,37 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F1F5FB]">
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-[#DCE7F5] flex items-center justify-between px-4 z-40">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+          className="text-gray-500 hover:text-[#185FA5] transition-colors p-1 -ml-1"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div className="text-base font-semibold text-[#185FA5]">WealthTrack</div>
+        <div className="w-6" />
+      </div>
+
+      {/* Mobile drawer overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-[190px] fixed inset-y-0 left-0 bg-white border-r border-[#DCE7F5] flex flex-col z-40">
+      <aside
+        className={`w-[190px] fixed inset-y-0 left-0 bg-white border-r border-[#DCE7F5] flex flex-col z-50 transform transition-transform duration-200 md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="px-5 py-6">
           <div className="text-lg font-semibold text-[#185FA5]">WealthTrack</div>
         </div>
@@ -279,18 +309,21 @@ export default function Dashboard() {
         <nav className="flex-1 px-3 space-y-1">
           <a
             href="#top"
+            onClick={() => setSidebarOpen(false)}
             className="block px-3 py-2 rounded-lg text-sm font-medium bg-[#E6F1FB] text-[#185FA5]"
           >
             Dashboard
           </a>
           <a
             href="#holdings"
+            onClick={() => setSidebarOpen(false)}
             className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-[#E6F1FB] hover:text-[#185FA5] transition-colors"
           >
             Holdings
           </a>
           <a
             href="#insights"
+            onClick={() => setSidebarOpen(false)}
             className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-[#E6F1FB] hover:text-[#185FA5] transition-colors"
           >
             AI insights
@@ -299,13 +332,13 @@ export default function Dashboard() {
 
         <div className="border-t border-[#DCE7F5] px-3 py-4 space-y-1">
           <button
-            onClick={handleLogout}
+            onClick={() => { setSidebarOpen(false); handleLogout(); }}
             className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-[#E6F1FB] hover:text-[#185FA5] transition-colors"
           >
             Log out
           </button>
           <button
-            onClick={() => setShowDeleteAccount(true)}
+            onClick={() => { setSidebarOpen(false); setShowDeleteAccount(true); }}
             className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             Delete account
@@ -314,11 +347,11 @@ export default function Dashboard() {
       </aside>
 
       {/* Main content */}
-      <main className="ml-[190px] p-8">
+      <main className="md:ml-[190px] pt-16 md:pt-8 px-4 sm:px-6 md:p-8">
         <div className="max-w-5xl mx-auto" id="top">
 
           {/* Top bar */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
             <h1 className="text-lg font-medium text-gray-900">
               {userName ? `Welcome, ${userName}` : "Your portfolio"}
             </h1>
@@ -392,15 +425,15 @@ export default function Dashboard() {
                     <div className="text-sm text-gray-400 py-4">No holdings yet. Click "+ Add holding" to start.</div>
                   ) : (
                     holdings.map((h) => (
-                      <div key={h.ticker} className="group flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{h.ticker}</div>
-                          <div className="text-xs text-gray-500">{h.companyName}</div>
-                          <div className="text-xs text-gray-400 mt-0.5">
+                      <div key={h.ticker} className="group flex items-center justify-between gap-3 py-3 border-b border-gray-100 last:border-0">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-gray-900 truncate">{h.ticker}</div>
+                          <div className="text-xs text-gray-500 truncate">{h.companyName}</div>
+                          <div className="text-xs text-gray-400 mt-0.5 truncate">
                             {h.shares} {h.shares === 1 ? "share" : "shares"} · ${fmt(h.currentPrice)} each
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-shrink-0">
                           <div className="text-right">
                             <div className="text-sm font-medium text-gray-900">${fmt(h.marketValue)}</div>
                             <div className={`text-xs ${h.gainLoss >= 0 ? "text-[#3B6D11]" : "text-red-600"}`}>
@@ -538,7 +571,7 @@ export default function Dashboard() {
       {/* Add Holding Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-semibold text-gray-900">Add a holding</h2>
               <button onClick={closeAddModal} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
@@ -621,7 +654,7 @@ export default function Dashboard() {
       {/* Delete confirmation popup */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Delete holding?</h2>
             <p className="text-sm text-gray-500 mb-5">
               Are you sure you want to delete <span className="font-medium text-gray-900">{deleteTarget.ticker}</span> ({deleteTarget.companyName})? This can't be undone.
@@ -648,7 +681,7 @@ export default function Dashboard() {
       {/* Delete account confirmation */}
       {showDeleteAccount && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Delete your account?</h2>
             <p className="text-sm text-gray-500 mb-5">
               This will permanently delete your account, all your portfolios, and all your holdings. This cannot be undone.
