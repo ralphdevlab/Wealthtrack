@@ -73,7 +73,10 @@ _Main dashboard: portfolio value, holdings with live prices, allocation chart, a
 - **Write-only password serialization** — the password field is accepted on input but never returned in API responses, preventing exposure of hashed credentials.
 - **CORS configured inside the security filter chain** — once a security filter is registered it runs before Spring MVC's CORS handling, so CORS must be declared within `SecurityFilterChain` for preflight requests to pass.
 - **Transactional cascade deletes** — account deletion removes holdings, then portfolios, then the user inside one transaction, so a partial failure can't leave orphaned records.
+- **Ownership checks on every resource** — a dedicated `OwnershipService` verifies that any portfolio or holding id in a request belongs to the user in the JWT. Requests for someone else's data return `404`, so the API doesn't reveal which ids exist.
+- **Fail-fast secrets** — the JWT signing key comes only from the `JWT_SECRET` environment variable; the app refuses to start if it's missing or shorter than 32 bytes.
 - **Configuration via environment variables** — no credentials or API keys in source control; the same build runs locally and in production with different injected config.
+- **Tested authorization** — integration tests (MockMvc + in-memory H2) prove one user can't read, add to, or delete another user's portfolios, and that tokens signed with the wrong key are rejected. GitHub Actions runs the suite on every push.
 
 ---
 
@@ -87,10 +90,11 @@ _Main dashboard: portfolio value, holdings with live prices, allocation chart, a
 | `DELETE` | `/api/users/me` | JWT | Delete account and all associated data |
 | `POST` | `/api/portfolios` | JWT | Create a portfolio for the current user |
 | `GET` | `/api/portfolios/me` | JWT | Current user's portfolios |
-| `GET` | `/api/portfolios/{id}/performance` | JWT | Holdings with live prices and gain/loss |
-| `GET` | `/api/portfolios/{id}/insights` | JWT | AI-generated portfolio analysis |
-| `POST` | `/api/holdings` | JWT | Add a holding |
-| `DELETE` | `/api/holdings/{id}` | JWT | Remove a holding |
+| `GET` | `/api/portfolios/{id}/performance` | JWT (owner) | Holdings with live prices and gain/loss |
+| `GET` | `/api/portfolios/{id}/insights` | JWT (owner) | AI-generated portfolio analysis |
+| `POST` | `/api/holdings` | JWT (owner) | Add a holding to one of your portfolios |
+| `GET` | `/api/holdings/portfolio/{id}` | JWT (owner) | List a portfolio's holdings |
+| `DELETE` | `/api/holdings/{id}` | JWT (owner) | Remove a holding |
 
 ---
 
@@ -112,10 +116,19 @@ psql postgres -c "CREATE DATABASE wealthtrack;"
 # Set your keys (add to ~/.zshrc to persist)
 export FINNHUB_API_KEY="your-key"
 export OPENAI_API_KEY="your-key"
+export JWT_SECRET="$(openssl rand -base64 48)"   # required, min 32 bytes
 
 ./mvnw spring-boot:run
 ```
 Runs on `http://localhost:8080`.
+
+### Tests
+
+```bash
+cd api
+./mvnw test
+```
+Uses an in-memory H2 database and mocked market/AI APIs, so no keys or Postgres needed.
 
 ### Frontend
 
@@ -148,7 +161,7 @@ Runs on `http://localhost:3000`.
 - Historical performance charts over time
 - Caching layer to reduce external API calls
 - httpOnly cookie storage for tokens instead of localStorage (mitigates XSS)
-- Unit and integration test coverage
+- Broader test coverage (controllers beyond auth/ownership, frontend)
 
 ---
 
