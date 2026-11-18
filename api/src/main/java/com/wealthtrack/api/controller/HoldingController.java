@@ -3,10 +3,11 @@ package com.wealthtrack.api.controller;
 import com.wealthtrack.api.model.Holding;
 import com.wealthtrack.api.model.Portfolio;
 import com.wealthtrack.api.repository.HoldingRepository;
-import com.wealthtrack.api.repository.PortfolioRepository;
+import com.wealthtrack.api.service.OwnershipService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,7 +19,7 @@ import java.util.List;
 public class HoldingController {
 
     private final HoldingRepository holdingRepository;
-    private final PortfolioRepository portfolioRepository;
+    private final OwnershipService ownershipService;
 
     @Data
     static class AddHoldingRequest {
@@ -30,15 +31,22 @@ public class HoldingController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addHolding(@RequestBody AddHoldingRequest request) {
-        Portfolio portfolio = portfolioRepository.findById(request.getPortfolioId()).orElse(null);
-        if (portfolio == null) {
-            return ResponseEntity.badRequest().body("Portfolio not found");
+    public ResponseEntity<?> addHolding(@RequestBody AddHoldingRequest request, Authentication authentication) {
+        if (request.getPortfolioId() == null
+                || request.getTicker() == null || request.getTicker().isBlank()
+                || request.getShares() == null || request.getShares().signum() <= 0
+                || request.getAvgCostBasis() == null || request.getAvgCostBasis().signum() < 0) {
+            return ResponseEntity.badRequest()
+                    .body("portfolioId, ticker, a positive share count and a non-negative cost basis are required");
         }
 
+        // Only allow adding to a portfolio the caller owns
+        Portfolio portfolio = ownershipService.requireOwnedPortfolio(request.getPortfolioId(), authentication);
+
         Holding holding = new Holding();
-        holding.setTicker(request.getTicker().toUpperCase());
-        holding.setCompanyName(request.getCompanyName());
+        holding.setTicker(request.getTicker().trim().toUpperCase());
+        String name = request.getCompanyName();
+        holding.setCompanyName(name == null || name.isBlank() ? holding.getTicker() : name.trim());
         holding.setShares(request.getShares());
         holding.setAvgCostBasis(request.getAvgCostBasis());
         holding.setPortfolio(portfolio);
@@ -48,16 +56,15 @@ public class HoldingController {
     }
 
     @GetMapping("/portfolio/{portfolioId}")
-    public List<Holding> getByPortfolio(@PathVariable Long portfolioId) {
+    public List<Holding> getByPortfolio(@PathVariable Long portfolioId, Authentication authentication) {
+        ownershipService.requireOwnedPortfolio(portfolioId, authentication);
         return holdingRepository.findByPortfolioId(portfolioId);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteHolding(@PathVariable Long id) {
-        if (!holdingRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        holdingRepository.deleteById(id);
+    public ResponseEntity<?> deleteHolding(@PathVariable Long id, Authentication authentication) {
+        Holding holding = ownershipService.requireOwnedHolding(id, authentication);
+        holdingRepository.delete(holding);
         return ResponseEntity.ok().body("Holding deleted");
     }
 }
