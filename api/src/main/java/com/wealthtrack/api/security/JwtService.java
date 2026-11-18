@@ -3,21 +3,24 @@ package com.wealthtrack.api.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 
 @Service
 public class JwtService {
 
-    // In production this lives in an environment variable, never in code
-    private static final String SECRET_KEY = "wealthtrack-super-secret-key-that-is-long-enough-for-hs256-algorithm";
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 hours
 
+    @Value("${jwt.secret}")
+    private String secretKey;
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String email) {
