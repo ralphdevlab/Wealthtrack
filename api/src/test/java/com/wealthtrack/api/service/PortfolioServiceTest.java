@@ -65,6 +65,7 @@ class PortfolioServiceTest {
 
     private static Holding holding(String ticker, String shares, String cost) {
         Holding h = new Holding();
+        h.setId(1L);
         h.setTicker(ticker);
         h.setCompanyName(ticker);
         h.setShares(new BigDecimal(shares));
