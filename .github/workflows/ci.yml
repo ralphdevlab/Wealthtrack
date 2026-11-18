@@ -18,8 +18,7 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - run: chmod +x mvnw
-      - run: ./mvnw -B verify
+      - run: mvn -B verify
 
   frontend:
     name: Frontend build
